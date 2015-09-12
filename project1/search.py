@@ -1,4 +1,4 @@
-# search.py
+#path search.py
 # ---------
 # Licensing Information: Please do not distribute or publish solutions to this
 # project. You are free to use and extend these projects for educational
@@ -66,9 +66,9 @@ def tinyMazeSearch(problem):
     s = Directions.SOUTH
     w = Directions.WEST
     return  [s,s,w,s,w,w,s,w]
-
+"""
 #def graphSearch(problem, algorithm):
-
+    
     from util import Stack
     from util import PriorityQueue
     fringe = PriorityQueue()
@@ -90,7 +90,30 @@ def tinyMazeSearch(problem):
             elif algorithm == "UCS":
                 
             elif algorithm == "ASS":
-                
+"""
+def directions(stack):
+    from game import Directions
+    s = Directions.SOUTH
+    w = Directions.WEST
+    n = Directions.NORTH
+    e = Directions.EAST
+    steps = []
+    print "HEYY"
+    print stack
+    print "BYEE"
+    #this involves prepending, so it can be improved.
+    while not stack.isEmpty():
+        node = stack.pop()
+        if node[1] == "South":
+            steps.insert(0, s)
+        if node[1] == "North":
+            steps.insert(0, n)
+        if node[1] == "East":
+            steps.insert(0, e)
+        if node[1] == "West":
+            steps.insert(0, w)
+    return steps
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first
@@ -109,55 +132,58 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
     from util import Stack
-    from game import Directions
-    print "Start:", problem.getStartState()
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    #fringe = [] # list
-    #visited = set() # set
-    #stk = Stack() # Stack
-    #n = 0
-    #fringe.append(problem.getStartState())
-    #visited.add(problem.getStartState())
-    #stk.push(problem.getStartState())
+    fringe = Stack()
+    visited = set()
+    path = Stack()
+    start = problem.getStartState()
+    if problem.isGoalState(start):
+        return []
+    fringe.push(start)
+    ds = DFSRec(problem, fringe, visited, path)
+    pathToGoal = directions(ds)
+    return pathToGoal
+    #util.raiseNotDefined()
 
-   # fringe.append(problem.getSuccessors(problem.getStartState())[1])
-   # return DFSHelper(problem,fringe,visited,stk,n)
-   # util.raiseNotDefined()
-
-def DFSHelper(problem,fringe,visited,stk,n):
-    """
-    from game import Directions
-    s = Directions.SOUTH
-    w = Directions.WEST
-    e = Directions.EAST
-    n = Directions.NORTH
-    path = []
-
-    if(problem.isGoalState(fringe[n])):
-        path.append(fringe[n][1])
-        for el in stack:
-            if el[1] == "South":
-                path.append(s)
-            elif el[1] == "West":
-                path.append(w)
-            elif el[1] == "East":
-                path.append(e)
-            elif el[1] == "North":
-                path.append(n)
-        return path
-    
-    children = problem.getSuccessors()
-    for child in children:
-        #check goal state
-        #now 
-
-
-    n+=1
-    stk.push(fringe[n])
-    visited.add(fringe[n])
-    fringe.append(fringe[n].getSuccessors
-    """
+def DFSRec(problem, fringe, visited, path):
+        node = fringe.pop()
+        print node
+        print "HELLO"
+        path.push(node)
+        copyStack = path
+        i = 0
+        print "path:",
+        while not copyStack.isEmpty():
+            print copyStack.pop()
+            print i
+            i= i + 1
+        visited.add(node)
+        if problem.isGoalState(node):
+            return path
+        if not problem.isGoalState(node):
+            if node != problem.getStartState():
+                if len(problem.getSuccessors(node[0])) == 0:
+                    path.pop()
+                    return None
+            else:
+                if len(problem.getSuccessors(node[:])) == 0:
+                    path.pop()
+                    return None
+        if node == problem.getStartState():
+            for child in problem.getSuccessors(node[:]):
+                if child not in visited:
+                     fringe.push(child)
+                     st = DFSRec(problem, fringe, visited, path)
+                     if st:
+                         return path
+        else: 
+            for child in problem.getSuccessors(node[0]):
+                if child not in visited:
+                     fringe.push(child)
+                     st = DFSRec(problem, fringe, visited, path)
+                     if st:
+                         return path
+        path.pop()
+        return None
 
 def breadthFirstSearch(problem):
     """
@@ -165,7 +191,22 @@ def breadthFirstSearch(problem):
     [2nd Edition: p 73, 3rd Edition: p 82]
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    from util import Stack
+    fringe = []
+    explored = set()
+    stk = Stack()
+    fringe.append(problem.getStartState())
+    stk.push(problem.getStartState())
+    while true:
+        if not fringe:
+            return None
+        node = fringe.pop()
+        explored.add(node)
+        children = problem.getSuccessors(node.getStartState())
+       # for child in children:
+            
+    #util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
