@@ -98,9 +98,6 @@ def directions(stack):
     n = Directions.NORTH
     e = Directions.EAST
     steps = []
-    print "HEYY"
-    print stack
-    print "BYEE"
     #this involves prepending, so it can be improved.
     while not stack.isEmpty():
         node = stack.pop()
@@ -138,52 +135,47 @@ def depthFirstSearch(problem):
     start = problem.getStartState()
     if problem.isGoalState(start):
         return []
-    fringe.push(start)
-    ds = DFSRec(problem, fringe, visited, path)
+    visited.add(start)
+    path.push(start)
+    children = problem.getSuccessors(start)
+
+    for child in children:
+        fringe.push(child)
+        ds = DFSRec(problem,fringe,visited,path)
+        if ds != None:
+            break
+
     pathToGoal = directions(ds)
     return pathToGoal
     #util.raiseNotDefined()
 
 def DFSRec(problem, fringe, visited, path):
         node = fringe.pop()
-        print node
-        print "HELLO"
-        path.push(node)
-        copyStack = path
-        i = 0
-        print "path:",
-        while not copyStack.isEmpty():
-            print copyStack.pop()
-            print i
-            i= i + 1
-        visited.add(node)
-        if problem.isGoalState(node):
+        visited.add(node[0])
+        children = problem.getSuccessors(node[0])
+        if problem.isGoalState(node[0]):
+            path.push(node)
             return path
-        if not problem.isGoalState(node):
-            if node != problem.getStartState():
-                if len(problem.getSuccessors(node[0])) == 0:
-                    path.pop()
-                    return None
-            else:
-                if len(problem.getSuccessors(node[:])) == 0:
-                    path.pop()
-                    return None
-        if node == problem.getStartState():
-            for child in problem.getSuccessors(node[:]):
-                if child not in visited:
-                     fringe.push(child)
-                     st = DFSRec(problem, fringe, visited, path)
-                     if st:
-                         return path
-        else: 
-            for child in problem.getSuccessors(node[0]):
-                if child not in visited:
-                     fringe.push(child)
-                     st = DFSRec(problem, fringe, visited, path)
-                     if st:
-                         return path
+        elif len(problem.getSuccessors(node[0])) == 0:
+            return None
+
+        fringeList = stackToList(fringe)
+        for child in children:
+            if child[0] not in visited and child not in fringeList:
+                fringe.push(child)
+                path.push(node)
+                ret = DFSRec(problem,fringe,visited,path)
+                if ret is not None:
+                    return path
         path.pop()
         return None
+
+def stackToList(stk):
+    stack = stk
+    ret = []
+    while not stack.isEmpty():
+        ret.append(stack.pop())
+    return ret
 
 def breadthFirstSearch(problem):
     """
@@ -191,22 +183,54 @@ def breadthFirstSearch(problem):
     [2nd Edition: p 73, 3rd Edition: p 82]
     """
     "*** YOUR CODE HERE ***"
+    from util import Queue
+    fringe = Queue()
+    visited = set()
+    path = {}
+    start = problem.getStartState()
+    visited.add(start)
+    if problem.isGoalState(start[0]):
+        return []
+    fringe.push(start)
 
-    from util import Stack
-    fringe = []
-    explored = set()
-    stk = Stack()
-    fringe.append(problem.getStartState())
-    stk.push(problem.getStartState())
-    while true:
-        if not fringe:
+    #test dummy value on fringe
+   # fringe.push(start)
+
+    path[start] = start
+    while True:
+        if fringe.isEmpty():
+            print "fringe empty"
             return None
         node = fringe.pop()
-        explored.add(node)
-        children = problem.getSuccessors(node.getStartState())
-       # for child in children:
+        if problem.isGoalState(node):
+            return pathFormat(path,node,start)
+        else:
+            if node == problem.getStartState():
+                children = problem.getSuccessors(node[:])
+
+            else:
+                children = problem.getSuccessors(node[0])
+            if children:
+
+                for child in children:
+                    if child not in visited and child[0] != problem.getStartState():
+                        fringe.push(child)
+                        path[child] = node
+                        visited.add(child)
+                        if problem.isGoalState(child):
+                            return pathFormat(path,child,start)
+    return pathFormat(path,node,start)
             
     #util.raiseNotDefined()
+
+
+def pathFormat(path,goal,start):
+    ret = []
+    child = goal
+    while path[child] != start:
+        ret.append(path[child][1])
+        child = path[child]
+    return ret
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
