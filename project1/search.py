@@ -111,6 +111,24 @@ def directions(stack):
             steps.insert(0, w)
     return steps
 
+class Child:
+    def __init__(self):
+        self.node = tuple()
+        self.path = []
+
+    def create(self,n,lis):
+        self.node = n
+        self.path = lis
+
+    def addElmt(self,elmt):
+        self.path.append(elmt)
+
+    def getPath(self):
+        return self.path
+
+    def getNode(self):
+        return self.node
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first
@@ -185,52 +203,61 @@ def breadthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     from util import Queue
     fringe = Queue()
+    fringeList = list()
+    path = Queue()
     visited = set()
-    path = {}
-    start = problem.getStartState()
-    visited.add(start)
-    if problem.isGoalState(start[0]):
-        return []
+    startNode = problem.getStartState()
+    start = Child()
+    start.create(startNode,[])
     fringe.push(start)
+    fringeList.append(start)
+    tmpPath={}
+    j=0
 
-    #test dummy value on fringe
-   # fringe.push(start)
-
-    path[start] = start
-    while True:
-        if fringe.isEmpty():
-            print "fringe empty"
-            return None
+    while fringeList:
         node = fringe.pop()
-        if problem.isGoalState(node):
-            return pathFormat(path,node,start)
+        fringeList.remove(node)
+        j+=1
+        if j==550:
+            print "hey"
+
+        if problem.isGoalState(node.getNode()[0]):
+            return tmpPath
         else:
-            if node == problem.getStartState():
-                children = problem.getSuccessors(node[:])
-
+            visited.add(node.getNode())
+            if node == start:
+                children = problem.getSuccessors(node.getNode()[:])
             else:
-                children = problem.getSuccessors(node[0])
-            if children:
+                children = problem.getSuccessors(node.getNode()[0])
+            for childNode in children:
+                print "in for:",childNode
+                child = Child()
+                child.create(childNode,node.getPath())
+                child.addElmt(child.getNode()[1])
 
-                for child in children:
-                    if child not in visited and child[0] != problem.getStartState():
-                        fringe.push(child)
-                        path[child] = node
-                        visited.add(child)
-                        if problem.isGoalState(child):
-                            return pathFormat(path,child,start)
-    return pathFormat(path,node,start)
-            
+                if child.getNode() not in visited and child not in fringeList:
+                    print "in if:",childNode
+                    if problem.isGoalState(child.getNode()[0]):
+                        return child.getPath()
+                    fringe.push(child)
+                    fringeList.append(child)
+    return None
+
     #util.raiseNotDefined()
 
 
-def pathFormat(path,goal,start):
-    ret = []
-    child = goal
-    while path[child] != start:
-        ret.append(path[child][1])
-        child = path[child]
-    return ret
+def pathFormat(parent,goal,start):
+    # ret = []
+    # child = goal
+    # while path[child] != start:
+    #     ret.append(path[child][1])
+    #     child = path[child]
+    # return ret
+    path = [goal]
+    while path[-1] != start:
+        path.append(parent[path[-1]])
+    path.reverse()
+    return path
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
