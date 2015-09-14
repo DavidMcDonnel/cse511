@@ -67,6 +67,7 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s,s,w,s,w,w,s,w]
 
+
 def directions(stack):
     from game import Directions
     s = Directions.SOUTH
@@ -110,6 +111,7 @@ class Child:
     def getCost(self):
         return self.cost
 
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first
@@ -132,8 +134,6 @@ def depthFirstSearch(problem):
     visited = set()
     path = Stack()
     start = problem.getStartState()
-    if problem.isGoalState(start):
-        return []
     visited.add(start)
     path.push(start)
     children = problem.getSuccessors(start)
@@ -155,12 +155,11 @@ def DFSRec(problem, fringe, visited, path):
         if problem.isGoalState(node[0]):
             path.push(node)
             return path
-        elif len(problem.getSuccessors(node[0])) == 0:
+        elif len(children) == 0:
             return None
 
-        fringeList = stackToList(fringe)
         for child in children:
-            if child[0] not in visited and child not in fringeList:
+            if child[0] not in visited and child not in fringe.list:
                 fringe.push(child)
                 path.push(node)
                 ret = DFSRec(problem,fringe,visited,path)
@@ -168,13 +167,6 @@ def DFSRec(problem, fringe, visited, path):
                     return path
         path.pop()
         return None
-
-def stackToList(stk):
-    stack = stk
-    ret = []
-    while not stack.isEmpty():
-        ret.append(stack.pop())
-    return ret
 
 def breadthFirstSearch(problem):
     """
@@ -184,17 +176,14 @@ def breadthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     from util import Queue
     fringe = Queue()
-    fringeList = list()
     visited = set()
     startNode = problem.getStartState()
     start = Child()
     start.create(startNode,[],1)
     fringe.push(start)
-    fringeList.append(start)
 
-    while fringeList:
+    while fringe.list:
         node = fringe.pop()
-        fringeList.remove(node)
         if problem.isGoalState(node.getNode()[0]):
             return node.getPath()
         else:
@@ -211,11 +200,8 @@ def breadthFirstSearch(problem):
                 child.create(childNode,node.getPath(),1)
                 child.addElmt(child.getNode()[1])
 
-                if child.getNode()[0] not in visited and child not in fringeList:
-                    if problem.isGoalState(child.getNode()[0]):
-                        return child.getPath()
+                if child.getNode()[0] not in visited and child not in fringe.list:
                     fringe.push(child)
-                    fringeList.append(child)
     return None
 
     #util.raiseNotDefined()
@@ -239,17 +225,14 @@ def uniformCostSearch(problem):
     "*** YOUR CODE HERE ***"
     from util import PriorityQueue
     fringe = PriorityQueue()
-    fringeList = list()
     visited = set()
     startNode = problem.getStartState()
     start = Child()
     start.create(startNode,[],0)
     fringe.push(start,0)
-    fringeList.append(start)
 
-    while fringeList:
+    while fringe.heap:
         node = fringe.pop()
-        fringeList.remove(node)
         if problem.isGoalState(node.getNode()[0]):
             return node.getPath()
         else:
@@ -266,13 +249,11 @@ def uniformCostSearch(problem):
                 child.create(childNode,node.getPath(),node.getCost()+childNode[-1])
                 child.addElmt(child.getNode()[1])
 
-                if child.getNode()[0] not in visited and child not in fringeList:
-                    if problem.isGoalState(child.getNode()[0]):
-                        return child.getPath()
+                if child.getNode()[0] not in visited and child not in fringe.heap:
                     fringe.push(child,child.getCost())
-                    fringeList.append(child)
     return None
     #util.raiseNotDefined()
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -281,22 +262,20 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
 def aStarSearch(problem, heuristic):
     "Search the node that has the lowest combined cost and heuristic first."
     "*** YOUR CODE HERE ***"
     from util import PriorityQueue
     fringe = PriorityQueue()
-    fringeList = list()
     visited = set()
     startNode = problem.getStartState()
     start = Child()
     start.create(startNode,[],0)
     fringe.push(start,0)
-    fringeList.append(start)
 
-    while fringeList:
+    while fringe.heap:
         node = fringe.pop()
-        fringeList.remove(node)
         if problem.isGoalState(node.getNode()[0]):
             return node.getPath()
         else:
@@ -311,11 +290,8 @@ def aStarSearch(problem, heuristic):
                 child.create(childNode,node.getPath(),node.getCost()+childNode[-1] + h)
                 child.addElmt(child.getNode()[1])
 
-                if child.getNode() not in visited and child not in fringeList:
-                    if problem.isGoalState(child.getNode()[0]):
-                        return child.getPath()
+                if child.getNode() not in visited and child not in fringe.heap:
                     fringe.push(child,child.getCost())
-                    fringeList.append(child)
     return None
     #util.raiseNotDefined()
 
