@@ -148,6 +148,7 @@ def depthFirstSearch(problem):
     return pathToGoal
     #util.raiseNotDefined()
 
+
 def DFSRec(problem, fringe, visited, path):
         node = fringe.pop()
         visited.add(node[0])
@@ -168,6 +169,7 @@ def DFSRec(problem, fringe, visited, path):
         path.pop()
         return None
 
+
 def breadthFirstSearch(problem):
     """
     Search the shallowest nodes in the search tree first.
@@ -179,7 +181,8 @@ def breadthFirstSearch(problem):
     visited = set()
     startNode = problem.getStartState()
     start = Child()
-    start.create(startNode,[],1)
+    start.create(startNode,[],0)
+    visited.add(start.getNode()[:])
     fringe.push(start)
 
     while fringe.list:
@@ -188,37 +191,23 @@ def breadthFirstSearch(problem):
             return node.getPath()
         else:
             if node == start:
-                visited.add(node.getNode()[:])
-            else:
-                visited.add(node.getNode()[0])
-            if node == start:
                 children = problem.getSuccessors(node.getNode()[:])
             else:
+                visited.add(node.getNode()[0])
                 children = problem.getSuccessors(node.getNode()[0])
             for childNode in children:
-                child = Child()
-                child.create(childNode,node.getPath(),1)
-                child.addElmt(child.getNode()[1])
-
-                if child.getNode()[0] not in visited and child not in fringe.list:
-                    fringe.push(child)
+                if childNode[0] != start.getNode()[:]:
+                    child = Child()
+                    child.create(childNode,node.getPath(),1)
+                    child.addElmt(child.getNode()[1])
+                    if child.getNode()[0] not in visited and child not in fringe.list:
+                        if problem.isGoalState(child.getNode()[0]):
+                            return child.getPath()
+                        fringe.push(child)
     return None
 
     #util.raiseNotDefined()
 
-
-def pathFormat(parent,goal,start):
-    # ret = []
-    # child = goal
-    # while path[child] != start:
-    #     ret.append(path[child][1])
-    #     child = path[child]
-    # return ret
-    path = [goal]
-    while path[-1] != start:
-        path.append(parent[path[-1]])
-    path.reverse()
-    return path
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
@@ -238,19 +227,18 @@ def uniformCostSearch(problem):
         else:
             if node == start:
                 visited.add(node.getNode()[:])
-            else:
-                visited.add(node.getNode()[0])
-            if node == start:
                 children = problem.getSuccessors(node.getNode()[:])
             else:
+                visited.add(node.getNode()[0])
                 children = problem.getSuccessors(node.getNode()[0])
             for childNode in children:
-                child = Child()
-                child.create(childNode,node.getPath(),node.getCost()+childNode[-1])
-                child.addElmt(child.getNode()[1])
+                if childNode[0] != start.getNode()[:]:
+                    child = Child()
+                    child.create(childNode,node.getPath(),node.getCost()+childNode[-1])
+                    child.addElmt(child.getNode()[1])
 
-                if child.getNode()[0] not in visited and child not in fringe.heap:
-                    fringe.push(child,child.getCost())
+                    if child.getNode()[0] not in visited and child not in fringe.heap:
+                        fringe.push(child,child.getCost())
     return None
     #util.raiseNotDefined()
 
@@ -278,20 +266,23 @@ def aStarSearch(problem, heuristic):
         node = fringe.pop()
         if problem.isGoalState(node.getNode()[0]):
             return node.getPath()
+        elif node.getNode() in visited:
+            continue
         else:
-            visited.add(node.getNode())
             if node == start:
                 children = problem.getSuccessors(node.getNode()[:])
+                visited.add(start.getNode()[:])
             else:
                 children = problem.getSuccessors(node.getNode()[0])
+                visited.add(node.getNode()[0])
             for childNode in children:
-                child = Child()
-                h = heuristic(childNode[0],problem)
-                child.create(childNode,node.getPath(),node.getCost()+childNode[-1] + h)
-                child.addElmt(child.getNode()[1])
-
-                if child.getNode() not in visited and child not in fringe.heap:
-                    fringe.push(child,child.getCost())
+                if childNode[0] != start.getNode()[:]:
+                    child = Child()
+                    h = heuristic(childNode[0],problem)
+                    child.create(childNode,node.getPath(),node.getCost()+childNode[-1] + h)
+                    child.addElmt(child.getNode()[1])
+                    if child.getNode() not in visited and child not in fringe.heap:
+                        fringe.push(child,child.getCost())
     return None
     #util.raiseNotDefined()
 
