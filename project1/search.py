@@ -66,31 +66,7 @@ def tinyMazeSearch(problem):
     s = Directions.SOUTH
     w = Directions.WEST
     return  [s,s,w,s,w,w,s,w]
-"""
-#def graphSearch(problem, algorithm):
-    
-    from util import Stack
-    from util import PriorityQueue
-    fringe = PriorityQueue()
-    explored = set()
-    stk = Stack()
-    fringe.push(problem.getStartState(),algorithm.priority)#pseudocode
-    stk.push(problem.getStartState())
-    while true:
-        if not fringe:
-            return None
-        node = fringe.pop()
-        explored.add(node)
-        children = problem.getSuccessors(node.getStartState())
-        for child in children:
-            if algorithm == "DFS":
-                
-            elif algorithm == "BFS":
-                
-            elif algorithm == "UCS":
-                
-            elif algorithm == "ASS":
-"""
+
 def directions(stack):
     from game import Directions
     s = Directions.SOUTH
@@ -115,10 +91,12 @@ class Child:
     def __init__(self):
         self.node = tuple()
         self.path = []
+        self.cost = 0
 
-    def create(self,n,lis):
+    def create(self,n,lis,c):
         self.node = n
-        self.path = lis
+        self.path = lis[:]
+        self.cost = c
 
     def addElmt(self,elmt):
         self.path.append(elmt)
@@ -128,6 +106,9 @@ class Child:
 
     def getNode(self):
         return self.node
+
+    def getCost(self):
+        return self.cost
 
 def depthFirstSearch(problem):
     """
@@ -204,39 +185,33 @@ def breadthFirstSearch(problem):
     from util import Queue
     fringe = Queue()
     fringeList = list()
-    path = Queue()
     visited = set()
     startNode = problem.getStartState()
     start = Child()
-    start.create(startNode,[])
+    start.create(startNode,[],1)
     fringe.push(start)
     fringeList.append(start)
-    tmpPath={}
-    j=0
 
     while fringeList:
         node = fringe.pop()
         fringeList.remove(node)
-        j+=1
-        if j==550:
-            print "hey"
-
         if problem.isGoalState(node.getNode()[0]):
-            return tmpPath
+            return node.getPath()
         else:
-            visited.add(node.getNode())
+            if node == start:
+                visited.add(node.getNode()[:])
+            else:
+                visited.add(node.getNode()[0])
             if node == start:
                 children = problem.getSuccessors(node.getNode()[:])
             else:
                 children = problem.getSuccessors(node.getNode()[0])
             for childNode in children:
-                print "in for:",childNode
                 child = Child()
-                child.create(childNode,node.getPath())
+                child.create(childNode,node.getPath(),1)
                 child.addElmt(child.getNode()[1])
 
-                if child.getNode() not in visited and child not in fringeList:
-                    print "in if:",childNode
+                if child.getNode()[0] not in visited and child not in fringeList:
                     if problem.isGoalState(child.getNode()[0]):
                         return child.getPath()
                     fringe.push(child)
@@ -262,7 +237,42 @@ def pathFormat(parent,goal,start):
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueue
+    fringe = PriorityQueue()
+    fringeList = list()
+    visited = set()
+    startNode = problem.getStartState()
+    start = Child()
+    start.create(startNode,[],0)
+    fringe.push(start,0)
+    fringeList.append(start)
+
+    while fringeList:
+        node = fringe.pop()
+        fringeList.remove(node)
+        if problem.isGoalState(node.getNode()[0]):
+            return node.getPath()
+        else:
+            if node == start:
+                visited.add(node.getNode()[:])
+            else:
+                visited.add(node.getNode()[0])
+            if node == start:
+                children = problem.getSuccessors(node.getNode()[:])
+            else:
+                children = problem.getSuccessors(node.getNode()[0])
+            for childNode in children:
+                child = Child()
+                child.create(childNode,node.getPath(),node.getCost()+childNode[-1])
+                child.addElmt(child.getNode()[1])
+
+                if child.getNode()[0] not in visited and child not in fringeList:
+                    if problem.isGoalState(child.getNode()[0]):
+                        return child.getPath()
+                    fringe.push(child,child.getCost())
+                    fringeList.append(child)
+    return None
+    #util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
     """
@@ -271,10 +281,43 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
-def aStarSearch(problem, heuristic=nullHeuristic):
+def aStarSearch(problem, heuristic):
     "Search the node that has the lowest combined cost and heuristic first."
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueue
+    fringe = PriorityQueue()
+    fringeList = list()
+    visited = set()
+    startNode = problem.getStartState()
+    start = Child()
+    start.create(startNode,[],0)
+    fringe.push(start,0)
+    fringeList.append(start)
+
+    while fringeList:
+        node = fringe.pop()
+        fringeList.remove(node)
+        if problem.isGoalState(node.getNode()[0]):
+            return node.getPath()
+        else:
+            visited.add(node.getNode())
+            if node == start:
+                children = problem.getSuccessors(node.getNode()[:])
+            else:
+                children = problem.getSuccessors(node.getNode()[0])
+            for childNode in children:
+                child = Child()
+                h = heuristic(childNode[0],problem)
+                child.create(childNode,node.getPath(),node.getCost()+childNode[-1] + h)
+                child.addElmt(child.getNode()[1])
+
+                if child.getNode() not in visited and child not in fringeList:
+                    if problem.isGoalState(child.getNode()[0]):
+                        return child.getPath()
+                    fringe.push(child,child.getCost())
+                    fringeList.append(child)
+    return None
+    #util.raiseNotDefined()
 
 
 # Abbreviations
