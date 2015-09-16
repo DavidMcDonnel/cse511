@@ -171,7 +171,31 @@ def DFSRec(problem, fringe, visited, path):
         path.pop()
         return None
 
+class FringeObj:
+    def __init__(self):
+        self.parent = []
+        self.state = []
+        self.action = ""
+    def create(self, s, p, a):
+        self.state = s
+        self.parent = p
+        self.action = a
+    def getState(self):
+        return self.state
+    def getParent(self):
+        return self.parent
+    def getAction(self):
+        return self.action
 
+def ListOfDicts(child):
+    path = []
+    while child.getParent():
+        dir = child.getAction()
+        path.insert(0, dir)
+        child = child.getParent()
+    return path
+    
+    
 def breadthFirstSearch(problem):
     """
     Search the shallowest nodes in the search tree first.
@@ -179,32 +203,41 @@ def breadthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
     from util import Queue
+    from game import Directions
+    s = Directions.SOUTH
+    n = Directions.NORTH
+    e = Directions.EAST
+    w = Directions.WEST
+    st = Directions.STOP
+    
     fringe = Queue()
     visited = set()
     startNode = problem.getStartState()
-    start = Child()
-    start.create(startNode,[],0)
-    visited.add(start.getNode()[:])
+    start = FringeObj()
+    start.create(startNode,[],st)
+    visited.add(start.getState())
     fringe.push(start)
 
     while fringe.list:
 
         node = fringe.pop()
 
-        if problem.isGoalState(node.getNode()[0]):
-            return node.getPath()
+        if problem.isGoalState(node.getState()[0]):
+            return ListOfDicts(node)
         else:
-            if node == start:
-                children = problem.getSuccessors(node.getNode()[:])
+            if node.getState() == start.getState():
+                children = problem.getSuccessors(node.getState())
             else:
-                visited.add(node.getNode()[0])
-                children = problem.getSuccessors(node.getNode()[0])
+                visited.add(node.getState())
+                children = problem.getSuccessors(node.getState()[0])
 
             for childNode in children:
-                child = Child()
-                child.create(childNode,node.getPath(),1)
-                child.addElmt(child.getNode()[1])
-                if child.getNode()[0] not in visited and child not in fringe.list:
+                child = FringeObj()
+                child.create(childNode,node ,childNode[1])
+                
+                if child.getState() not in visited and child not in fringe.list:
+                    if problem.isGoalState(child.getState()[0]):
+                        return ListOfDicts(child)
                     fringe.push(child)
     return None
 
