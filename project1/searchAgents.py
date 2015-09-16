@@ -275,6 +275,10 @@ class CornersProblem(search.SearchProblem):
                 print 'Warning: no food in corner ' + str(corner)
         self._expanded = 0 # Number of search nodes expanded
 
+
+       
+
+
         "*** YOUR CODE HERE ***"
         self.startState = (self.startingPosition, self.corners )
 
@@ -339,10 +343,6 @@ class CornersProblem(search.SearchProblem):
         self._expanded += 1
         return successors
 
-
-        self._expanded += 1
-        return successors
-
     def getCostOfActions(self, actions):
         """
         Returns the cost of a particular sequence of actions.  If those actions
@@ -378,11 +378,11 @@ def cornersHeuristic(state, problem):
 
     "*** YOUR CODE HERE ***"
     xyPlace=stateStuff[0] #x,y coordinates of state
-    foodList = stateStuff[1] #list of food left
+    foodList = list(stateStuff[1]) #list of food left
     distance =0
     if len(foodList) < 1:
         return distance
-    minDistTotal = 99999
+    minDistanceTotal = 99999
     closestFood = []
     for food in foodList:
         tmpD =math.sqrt( ((xyPlace[0] - food[0])**2)+((xyPlace[1] - food[1]))**2)
