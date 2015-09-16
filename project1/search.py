@@ -235,7 +235,6 @@ def uniformCostSearch(problem):
             child = Child()
             child.create(childNode,node.getPath(),node.getCost()+childNode[-1],node)
             child.addElmt(child.getNode()[1])
-            test = fringe.heap
             if child.getCoord() not in visited and child not in fringe.heap:
                 fringe.push(child,child.getCost())
     return None
@@ -250,23 +249,20 @@ def nullHeuristic(state, problem=None):
     return 0
 
 
-def aStarSearch(problem, heuristic):
+def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
     "*** YOUR CODE HERE ***"
     from util import PriorityQueue
     fringe = PriorityQueue()
-    fringeList = []
     visited = set()
     startNode = problem.getStartState()
     startNode = (startNode,"",0)
     start = Child()
     start.create(startNode,[],0,None)
     fringe.push(start,0)
-    fringeList.append(start)
 
     while fringe.heap:
         node = fringe.pop()
-        fringeList.remove(node)
         if problem.isGoalState(node.getCoord()):
             return node.getPath()
         if node.getCoord() not in visited:
@@ -274,12 +270,11 @@ def aStarSearch(problem, heuristic):
             children = problem.getSuccessors(node.getCoord())
             for childNode in children:
                 child = Child()
-                h = heuristic(childNode[0],problem)
-                child.create(childNode,node.getPath(),node.getCost()+childNode[-1] + h,node)
+                child.create(childNode,node.getPath(),node.getCost() + childNode[-1],node)
                 child.addElmt(child.getNode()[1])
-                if child.getCoord() not in visited and child.getCoord() not in map(Child.getCoord,fringeList):
-                    fringe.push(child,child.getCost())
-                    fringeList.append(child)
+                if child.getCoord() not in visited and child not in fringe.heap:
+                    h = heuristic(child.getCoord(),problem)
+                    fringe.push(child,node.getCost()+childNode[-1] + h)
     return None
     #util.raiseNotDefined()
 
