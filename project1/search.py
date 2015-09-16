@@ -118,6 +118,9 @@ class Child:
     def getParent(self):
         return self.parentNode
 
+    def getCoord(self):
+        return self.node[0]
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first
@@ -190,21 +193,20 @@ def breadthFirstSearch(problem):
     start = Child()
     start.create(startNode,[],0,None)
     fringe.push(start)
-
     while fringe.list:
 
         node = fringe.pop()
 
-        if problem.isGoalState(node.getNode()[0]):
+        if problem.isGoalState(node.getCoord()):
             return node.getPath()
         visited.add(node.getNode()[0])
-        children = problem.getSuccessors(node.getNode()[0])
+        children = problem.getSuccessors(node.getCoord())
 
         for childNode in children:
             child = Child()
             child.create(childNode,node.getPath(),1,node)
             child.addElmt(child.getNode()[1])
-            if child.getNode()[0] not in visited and child not in fringe.list:
+            if child.getCoord() not in visited and child.getCoord() not in map(Child.getCoord,fringe.list):
                 fringe.push(child)
     return None
 
@@ -225,18 +227,17 @@ def uniformCostSearch(problem):
 
     while fringe.heap:
         node = fringe.pop()
-        if problem.isGoalState(node.getNode()[0]):
+        if problem.isGoalState(node.getCoord()):
             return node.getPath()
-        else:
-            visited.add(node.getNode()[0])
-            children = problem.getSuccessors(node.getNode()[0])
-
-            for childNode in children:
-                child = Child()
-                child.create(childNode,node.getPath(),node.getCost()+childNode[-1],node)
-                child.addElmt(child.getNode()[1])
-                if child.getNode()[0] not in visited and child not in fringe.heap:
-                    fringe.push(child,child.getCost())
+        visited.add(node.getCoord())
+        children = problem.getSuccessors(node.getCoord())
+        for childNode in children:
+            child = Child()
+            child.create(childNode,node.getPath(),node.getCost()+childNode[-1],node)
+            child.addElmt(child.getNode()[1])
+            test = fringe.heap
+            if child.getCoord() not in visited and child not in fringe.heap:
+                fringe.push(child,child.getCost())
     return None
     #util.raiseNotDefined()
 
@@ -254,26 +255,31 @@ def aStarSearch(problem, heuristic):
     "*** YOUR CODE HERE ***"
     from util import PriorityQueue
     fringe = PriorityQueue()
+    fringeList = []
     visited = set()
     startNode = problem.getStartState()
     startNode = (startNode,"",0)
     start = Child()
     start.create(startNode,[],0,None)
     fringe.push(start,0)
+    fringeList.append(start)
 
     while fringe.heap:
         node = fringe.pop()
-        if problem.isGoalState(node.getNode()[0]):
+        fringeList.remove(node)
+        if problem.isGoalState(node.getCoord()):
             return node.getPath()
-        children = problem.getSuccessors(node.getNode()[0])
-        visited.add(node.getNode()[0])
-        for childNode in children:
-            child = Child()
-            h = heuristic(childNode[0],problem)
-            child.create(childNode,node.getPath(),node.getCost()+childNode[-1] + h,node)
-            child.addElmt(child.getNode()[1])
-            if child.getNode()[0] not in visited and child not in fringe.heap:
-                fringe.push(child,child.getCost())
+        if node.getCoord() not in visited:
+            visited.add(node.getCoord())
+            children = problem.getSuccessors(node.getCoord())
+            for childNode in children:
+                child = Child()
+                h = heuristic(childNode[0],problem)
+                child.create(childNode,node.getPath(),node.getCost()+childNode[-1] + h,node)
+                child.addElmt(child.getNode()[1])
+                if child.getCoord() not in map(Child.getCoord,fringeList):
+                    fringe.push(child,child.getCost())
+                    fringeList.append(child)
     return None
     #util.raiseNotDefined()
 

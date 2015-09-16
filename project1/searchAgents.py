@@ -276,16 +276,26 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0 # Number of search nodes expanded
 
         "*** YOUR CODE HERE ***"
+        self.startState = (self.startingPosition, self.corners )
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.startState
+
+        #util.raiseNotDefined()
 
     def isGoalState(self, state):
         "Returns whether this search state is a goal state of the problem"
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if state == self.getStartState()[0]:
+            return False
+        elif len(state[1]) > 0:
+            return False
+        else:
+            return True
+
+        #util.raiseNotDefined()
 
     def getSuccessors(self, state):
         """
@@ -298,7 +308,6 @@ class CornersProblem(search.SearchProblem):
          required to get there, and 'stepCost' is the incremental
          cost of expanding to that successor
         """
-
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -309,6 +318,27 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            if state == self.getStartState()[0]:
+                 x,y = state
+                 state = (state, self.corners )
+            else:
+                x,y = state[0]
+
+            dx,dy = Actions.directionToVector(action)
+
+            nextx, nexty = int(x+dx), int(y+dy)
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                if nextState in state[1]:
+                    tmpList = list(state[1])
+                    tmpList.remove(nextState)
+                    successors.append(( (nextState, tuple(tmpList) ), action ,1) )
+                else:
+                    successors.append( ( (nextState, state[1]), action, 1 ) )
+
+        self._expanded += 1
+        return successors
+
 
         self._expanded += 1
         return successors
@@ -340,11 +370,41 @@ def cornersHeuristic(state, problem):
     on the shortest path from the state to a goal of the problem; i.e.
     it should be admissible (as well as consistent).
     """
+    import math
+    
+    
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    xyPlace=stateStuff[0] #x,y coordinates of state
+    foodList = stateStuff[1] #list of food left
+    distance =0
+    if len(foodList) < 1:
+        return distance
+    minDistTotal = 99999
+    closestFood = []
+    for food in foodList:
+        tmpD =math.sqrt( ((xyPlace[0] - food[0])**2)+((xyPlace[1] - food[1]))**2)
+        if tmpD < minDistanceTotal:
+            minDistanceTotal = tmpD
+            closestFood = food
+    foodList.remove(closestFood)
+    
+    while len(foodList) > 0:
+        dist = 99999
+        newClosestFood = []
+        for food in foodList:
+            ds = math.sqrt( ((food[0] - closestFood[0])**2)+((food[1] - closestFood[1]))**2  )
+            if ds < dist:
+                dist = ds
+                newClosestFood = food
+        minDistanceTotal += dist
+        closestFood = newClosestFood
+        foodList.remove(newClosestFood)
+    return minDistanceTotal
+    
+    #return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -499,7 +559,8 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #return state == gameState.
+        #util.raiseNotDefined()
 
 ##################
 # Mini-contest 1 #
