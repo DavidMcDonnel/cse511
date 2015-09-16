@@ -277,7 +277,7 @@ def aStarSearch(problem, heuristic):
                 h = heuristic(childNode[0],problem)
                 child.create(childNode,node.getPath(),node.getCost()+childNode[-1] + h,node)
                 child.addElmt(child.getNode()[1])
-                if child.getCoord() not in map(Child.getCoord,fringeList):
+                if child.getCoord() not in visited and child.getCoord() not in map(Child.getCoord,fringeList):
                     fringe.push(child,child.getCost())
                     fringeList.append(child)
     return None
