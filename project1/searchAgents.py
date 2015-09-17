@@ -322,6 +322,8 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            #still need this case depending on if the startState is the state here.
+            #Format slightly different
             if state == self.getStartState()[0]:
                  x,y = state
                  state = (state, self.corners )
@@ -331,15 +333,16 @@ class CornersProblem(search.SearchProblem):
             dx,dy = Actions.directionToVector(action)
 
             nextx, nexty = int(x+dx), int(y+dy)
+            #walls[x][y] returns a bool, can directly check it
             if not self.walls[nextx][nexty]:
                 nextState = (nextx, nexty)
                 if nextState in state[1]:
-                    tmpList = list(state[1])
-                    tmpList.remove(nextState)
-                    successors.append(( (nextState, tuple(tmpList) ), action ,1) )
+                    tmpListOfFoodLeft = list(state[1])
+                    tmpListOfFoodLeft.remove(nextState)
+                    successors.append(( (nextState, tuple(tmpListOfFoodLeft) ), action ,1) )
                 else:
                     successors.append( ( (nextState, state[1]), action, 1 ) )
-
+                    
         self._expanded += 1
         return successors
 
@@ -381,6 +384,7 @@ def cornersHeuristic(state, problem):
     foodList = list(state[1]) #list of food left
     distance =0
     if len(foodList) < 1:
+        #For when we are at the goalState, no food left
         return distance
     minDistanceTotal = 99999
     closestFood = []
@@ -389,18 +393,20 @@ def cornersHeuristic(state, problem):
         if tmpD < minDistanceTotal:
             minDistanceTotal = tmpD
             closestFood = food
-    foodList.remove(closestFood)
+    foodList.remove(closestFood) #remove closestFood found, want to use it as a startpoint for other food
     
+    #calc min distances to next closest food, and then the rest until min dist to all food is summed.
     while len(foodList) > 0:
-        dist = 99999
+        minDist = 99999
         newClosestFood = []
         for food in foodList:
             ds = math.sqrt( ((food[0] - closestFood[0])**2)+((food[1] - closestFood[1]))**2  )
-            if ds < dist:
-                dist = ds
+            if ds < minDist:
+                minDist = ds
                 newClosestFood = food
-        minDistanceTotal += dist
+        
         closestFood = newClosestFood
+        minDistanceTotal += minDist
         foodList.remove(newClosestFood)
     return minDistanceTotal
     
@@ -585,7 +591,7 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        path = search.bfs(problem)
+        path = search.bfs(problem) #bfs is best choice to get closest food
         return path
         #util.raiseNotDefined()
 
@@ -623,10 +629,11 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
+        #this must work for any problem. 
         if self.food[x][y]:
             return True
         return False
-        #return state == gameState.
+        
         #util.raiseNotDefined()
 
 ##################
