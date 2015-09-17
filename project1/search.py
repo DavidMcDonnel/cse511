@@ -274,7 +274,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 child.addElmt(child.getNode()[1])
                 if child.getCoord() not in visited and child not in fringe.heap:
                     h = heuristic(child.getCoord(),problem)
-                    fringe.push(child,node.getCost()+childNode[-1] + h)
+                    fringe.push(child,node.getCost()+childNode[-1] + h);
     return None
     #util.raiseNotDefined()
 

@@ -468,6 +468,46 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
+
+class Game():
+    def __init__(self):
+        from util import PriorityQueue
+        self.pacman = tuple()
+        self.food = []
+        self.walls = list()
+        self.Queue = PriorityQueue()
+        self.min = float("inf")
+
+    def create(self,p,f,w):
+        import numpy as np
+        self.pacman = p
+        self.food = f
+        self.walls = w
+        self.myWalls = w.asList()
+    def getWalls(self):
+        return self.walls
+    def getPacman(self):
+        return self.pacman
+    def getFood(self):
+        return self.food
+    def getPacmanPosition(self):
+        return self.pacman
+    def getNumFood(self):
+        return len(self.food)
+    def hasFood(self,*goal):
+        return len(list(*goal))
+    def mazeDistance(self,point1,point2):
+        for food in self.getFood():
+            if food not in self.myWalls:
+                prob = PositionSearchProblem(self, start=point1, goal=point2, warn=False)
+                dist = len(search.bfs(prob))
+                self.Queue.push(food,dist)
+                self.min = self.min if self.min<dist else dist
+    def newQueue(self):
+        from util import PriorityQueue
+        self.Queue = PriorityQueue()
+
+
 def foodHeuristic(state, problem):
     """
     Your heuristic for the FoodSearchProblem goes here.
@@ -495,7 +535,29 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    # start = problem.getStartState()
+    # total = 0
+    # for food in foodGrid.asList():
+    #     total+=mazeDistance(state[0],food,problem.startingGameState())
+    #get smallest 2 food distances, then smallest distances between clusters, then distances between superclusters etc...
+    #return total minimum distance
+    game = Game()
+    game.create(position,set(foodGrid.asList()),problem.walls)
+    total = 0
+    # while game.getFood():
+    #     if game.min is not None:
+    #         total+= game.min
+    #     game.mazeDistance(state)
+    #     game.pacman = game.Queue.pop()
+    #     game.food.remove(game.getPacman())
+    for food1 in game.getFood():
+        for food2 in game.getFood():
+            if food1 != food2:
+                game.mazeDistance(food1,food2)
+                total += game.min
+
+    return total
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -523,7 +585,9 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        path = search.bfs(problem)
+        return path
+        #util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -559,6 +623,9 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
+        if self.food[x][y]:
+            return True
+        return False
         #return state == gameState.
         #util.raiseNotDefined()
 
@@ -582,7 +649,7 @@ class ApproximateSearchAgent(Agent):
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
-def mazeDistance(point1, point2, gameState):
+def mazeDistance(gameState, point1, point2):
     """
     Returns the maze distance between any two points, using the search functions
     you have already built.  The gameState can be any game state -- Pacman's position
@@ -599,3 +666,18 @@ def mazeDistance(point1, point2, gameState):
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
     prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False)
     return len(search.bfs(prob))
+
+
+class partial(object):
+
+    def __init__(*args, **kw):
+        self = args[0]
+        self.fn, self.args, self.kw = (args[1], args[2:], kw)
+
+    def __call__(self, *args, **kw):
+        if kw and self.kw:
+            d = self.kw.copy()
+            d.update(kw)
+        else:
+            d = kw or self.kw
+        return self.fn(*(self.args + args), **d)
