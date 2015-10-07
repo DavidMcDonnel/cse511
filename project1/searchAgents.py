@@ -477,9 +477,10 @@ class Game():
         self.walls = list()
         self.Queue = PriorityQueue()
         self.min = float("inf")
+        self.pairs = set()
+        self.mins = list()
 
     def create(self,p,f,w):
-        import numpy as np
         self.pacman = p
         self.food = f
         self.walls = w
@@ -503,9 +504,14 @@ class Game():
                 dist = len(search.bfs(prob))
                 self.Queue.push(food,dist)
                 self.min = self.min if self.min<dist else dist
+        return self.min
     def newQueue(self):
         from util import PriorityQueue
         self.Queue = PriorityQueue()
+
+    def helper(self,x,y):
+        self.mazeDistance(x,y)
+        self.pairs.add((x,y))
 
 
 def foodHeuristic(state, problem):
@@ -541,6 +547,7 @@ def foodHeuristic(state, problem):
     #     total+=mazeDistance(state[0],food,problem.startingGameState())
     #get smallest 2 food distances, then smallest distances between clusters, then distances between superclusters etc...
     #return total minimum distance
+    from util import manhattanDistance
     game = Game()
     game.create(position,set(foodGrid.asList()),problem.walls)
     total = 0
@@ -550,11 +557,35 @@ def foodHeuristic(state, problem):
     #     game.mazeDistance(state)
     #     game.pacman = game.Queue.pop()
     #     game.food.remove(game.getPacman())
-    for food1 in game.getFood():
-        for food2 in game.getFood():
-            if food1 != food2:
-                game.mazeDistance(food1,food2)
-                total += game.min
+
+    # for food1 in game.getFood():
+    #     for food2 in game.getFood():
+    #         if food1 != food2 and manhattanDistance(food1,food2) < game.min:
+    #             game.mazeDistance(food1,food2)
+    #             total += game.min
+
+    lambda x,y: game.mazeDistance(x,y) if manhattanDistance(x,y) < 4 and x != y else None, game.getFood()
+    total += game.min
+    map((lambda x,y: game.mazeDistance(x,y),game.pairs),game.mins)
+    total += sum(game.mins)
+    #total += [x for x in game.mins]
+
+    # for food1 in game.getFood():
+    #     for food2 in game.getFood():
+    #         dist = manhattanDistance(food1,food2)
+    #         if food1 != food2 and dist < 3:
+    #             game.pairs.add((food1,food2))
+    #             total += dist
+    # for cluster1 in game.pairs:
+    #     for cluster2 in game.pairs:
+    #         min = float("inf")
+    #         for point1 in cluster1:
+    #             for point2 in cluster2:
+    #                 dist2 = mazeDistance(point1,point2)
+    #                 minClust = min if min<dist2 else dist2
+    #         if cluster1 != cluster2:
+    #             total += minClust
+
 
     return total
 
@@ -639,6 +670,7 @@ class ApproximateSearchAgent(Agent):
     def registerInitialState(self, state):
         "This method is called before any moves are made."
         "*** YOUR CODE HERE ***"
+        # ApproximateSearchAgent.create(state,set(state.foodGrid.asList()),state.walls)
 
     def getAction(self, state):
         """
@@ -647,7 +679,51 @@ class ApproximateSearchAgent(Agent):
         Directions.{North, South, East, West, Stop}
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if 'actionIndex' not in dir(self): self.actionIndex = 0
+        i = self.actionIndex
+        self.actionIndex += 1
+        if i < len(self.actions):
+            return self.actions[i]
+        else:
+            return Directions.STOP
+
+        # util.raiseNotDefined()
+
+    def __init__(self):
+        from util import PriorityQueue
+        self.pacman = tuple()
+        self.food = []
+        self.walls = list()
+        self.Queue = PriorityQueue()
+        self.min = float("inf")
+
+    def create(self,p,f,w):
+        self.pacman = p
+        self.food = f
+        self.walls = w
+        self.myWalls = w.asList()
+    def getWalls(self):
+        return self.walls
+    def getPacman(self):
+        return self.pacman
+    def getFood(self):
+        return self.food
+    def getPacmanPosition(self):
+        return self.pacman
+    def getNumFood(self):
+        return len(self.food)
+    def hasFood(self,*goal):
+        return len(list(*goal))
+    def mazeDistance(self,point1,point2):
+        for food in self.getFood():
+            if food not in self.myWalls:
+                prob = PositionSearchProblem(self, start=point1, goal=point2, warn=False)
+                dist = len(search.bfs(prob))
+                self.Queue.push(food,dist)
+                self.min = self.min if self.min<dist else dist
+    def newQueue(self):
+        from util import PriorityQueue
+        self.Queue = PriorityQueue()
 
 def mazeDistance(gameState, point1, point2):
     """
