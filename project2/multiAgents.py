@@ -49,10 +49,7 @@ class ReflexAgent(Agent):
         return legalMoves[chosenIndex]
 
 
-    def distEval(self,newPos,x,y):
-        from util import manhattanDistance
-        dist = util.manhattanDistance(newPos,x)-util.manhattanDistance(newPos,y)
-        return -1 if dist<0 else 1 if dist>0 else 0
+   
 
 
     def evaluationFunction(self, currentGameState, action):
@@ -77,20 +74,34 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
         "*** YOUR CODE HERE ***"
-        from util import manhattanDistance
-        ghostValue = 0
-        foodValue = 0
-        foodList = newFood.asList()
-        foodList.sort(lambda x,y: util.manhattanDistance(newPos,x)-util.manhattanDistance(newPos,y))
-        if len(foodList)>0:
-            foodValue = util.manhattanDistance(newPos,foodList[0])
-        ghosts = list(g.getPosition() for g in newGhostStates)
-        if len(ghosts)>0:
-            ghosts.sort(lambda x,y: self.distEval(newPos,x,y))
-            dist = util.manhattanDistance(newPos,ghosts[0])
-            ghostValue = -99 if dist==0 else 2*-1.0/dist
-
-        return 2+ghostValue if foodValue==0 else ghostValue + 1.0/float(foodValue)
+       from util import manhattanDistance
+       if successorGameState.isWin():
+           return float("inf")
+       capsulePlaces = currentGameState.getCapsules()
+       gPos = []
+       minD = 99999
+       for gp in currentGameState.getGhostPositions():
+           ggtd = util.manhattanDistance(gp, newPos)
+           if ggtd < minD:
+               minD = ggtd
+               gPos = gp
+       distFromG = util.manhattanDistance(gPos, newPos)
+       score = max(distFromG, 5) + successorGameState.getScore()
+       foodList = newFood.asList()
+       closestFood = 100
+       if currentGameState.getNumFood() > successorGameState.getNumFood():
+           score = score + 100
+       if action == Directions.STOP:
+           score = score -5
+       if successorGameState.getPacmanPosition() in capsulePlaces:
+           score = score + 150
+       for foodPos in foodList:
+           tempD = util.manhattanDistance(foodPos, newPos)
+           if tempD < closestFood:
+               closestFood = tempD
+       score = score - (5 * closestFood)
+       return score
+           
 
 
 def scoreEvaluationFunction(currentGameState):
