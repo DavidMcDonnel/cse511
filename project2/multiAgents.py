@@ -93,15 +93,15 @@ class ReflexAgent(Agent):
         return 2+ghostValue if foodValue==0 else ghostValue + 1.0/float(foodValue)
 
 
-    def scoreEvaluationFunction(currentGameState):
-        """
-          This default evaluation function just returns the score of the state.
-          The score is the same one displayed in the Pacman GUI.
+def scoreEvaluationFunction(currentGameState):
+    """
+      This default evaluation function just returns the score of the state.
+      The score is the same one displayed in the Pacman GUI.
 
-          This evaluation function is meant for use with adversarial search agents
-          (not reflex agents).
-        """
-        return currentGameState.getScore()
+      This evaluation function is meant for use with adversarial search agents
+      (not reflex agents).
+    """
+    return currentGameState.getScore()
 
 
 class MultiAgentSearchAgent(Agent):
@@ -306,6 +306,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             if opt[1] > maxV:
                 maxV = opt[1]
                 best = opt
+        if best[0][0] == "Stop":
+            print "stop"
         return best[0][0]
 
     def value(self, gameState, agent, depth, evalFun):
@@ -342,19 +344,45 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         return v
         # util.raiseNotDefined()
 
-    def betterEvaluationFunction(currentGameState):
-        """
-         Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
-         evaluation function (question 5).
+def betterEvaluationFunction(currentGameState):
+    """
+     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
+     evaluation function (question 5).
 
-        DESCRIPTION: <write something here so we know what you did>
-         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+    DESCRIPTION: <write something here so we know what you did>
+     """
+    "*** YOUR CODE HERE ***"
+    if currentGameState.isWin():
+        return 999999999999999
+    if currentGameState.isLose():
+        return -999999999999999
+    retVal = scoreEvaluationFunction(currentGameState)
+    foodDist = float("+inf")
+    pacman = currentGameState.getPacmanPosition()
+
+    foodList = currentGameState.getFood().asList()
+    for food in foodList:
+        dist = util.manhattanDistance(pacman,food)
+        if dist < foodDist:
+            foodDist = dist
+    retVal = retVal - 1.5*foodDist
+
+    ghostList = currentGameState.getGhostPositions()
+    for ghost in ghostList:
+        ghostDist = util.manhattanDistance(pacman,ghost)
+        if ghostDist < 2:
+            retVal = -999999999999999
+        else:
+            retVal = retVal + max(ghostDist,4)*2
+    retVal = retVal - 4*len(foodList)
+
+    retVal = retVal - 3.5*len(currentGameState.getCapsules())
+
+    return 1.0/retVal
 
 
-    # Abbreviation
-    better = betterEvaluationFunction
+# Abbreviation
+better = betterEvaluationFunction
 
 
 class ContestAgent(MultiAgentSearchAgent):
