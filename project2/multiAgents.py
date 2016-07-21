@@ -49,12 +49,6 @@ class ReflexAgent(Agent):
         return legalMoves[chosenIndex]
 
 
-    def distEval(self,newPos,x,y):
-        from util import manhattanDistance
-        dist = util.manhattanDistance(newPos,x)-util.manhattanDistance(newPos,y)
-        return -1 if dist<0 else 1 if dist>0 else 0
-
-
     def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
@@ -78,19 +72,32 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
         "*** YOUR CODE HERE ***"
         from util import manhattanDistance
-        ghostValue = 0
-        foodValue = 0
+        if successorGameState.isWin():
+           return float("inf")
+        capsulePlaces = currentGameState.getCapsules()
+        gPos = []
+        minD = 99999
+        for gp in currentGameState.getGhostPositions():
+           ggtd = util.manhattanDistance(gp, newPos)
+           if ggtd < minD:
+               minD = ggtd
+               gPos = gp
+        distFromG = util.manhattanDistance(gPos, newPos)
+        score = max(distFromG, 5) + successorGameState.getScore()
         foodList = newFood.asList()
-        foodList.sort(lambda x,y: util.manhattanDistance(newPos,x)-util.manhattanDistance(newPos,y))
-        if len(foodList)>0:
-            foodValue = util.manhattanDistance(newPos,foodList[0])
-        ghosts = list(g.getPosition() for g in newGhostStates)
-        if len(ghosts)>0:
-            ghosts.sort(lambda x,y: self.distEval(newPos,x,y))
-            dist = util.manhattanDistance(newPos,ghosts[0])
-            ghostValue = -99 if dist==0 else 2*-1.0/dist
-
-        return 2+ghostValue if foodValue==0 else ghostValue + 1.0/float(foodValue)
+        closestFood = 100
+        if currentGameState.getNumFood() > successorGameState.getNumFood():
+           score = score + 100
+        if action == Directions.STOP:
+           score = score -5
+        if successorGameState.getPacmanPosition() in capsulePlaces:
+           score = score + 150
+        for foodPos in foodList:
+           tempD = util.manhattanDistance(foodPos, newPos)
+           if tempD < closestFood:
+               closestFood = tempD
+        score = score - (5 * closestFood)
+        return score
 
 
 def scoreEvaluationFunction(currentGameState):
@@ -306,8 +313,6 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             if opt[1] > maxV:
                 maxV = opt[1]
                 best = opt
-        if best[0][0] == "Stop":
-            print "stop"
         return best[0][0]
 
     def value(self, gameState, agent, depth, evalFun):
@@ -339,7 +344,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         for act in actions:
             successors.append(gameState.generateSuccessor(agent, act))
         for succ in successors:
-            p = 1 / len(successors)
+            p = 1.0 / len(successors)
             v = v + (p * self.value(succ, agent + 1, depth, evalFun))
         return v
         # util.raiseNotDefined()
@@ -352,6 +357,9 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
      """
     "*** YOUR CODE HERE ***"
+
+    weights = [1.3, 3, 1.3, 3, 3]
+
     if currentGameState.isWin():
         return 999999999999999
     if currentGameState.isLose():
@@ -365,20 +373,21 @@ def betterEvaluationFunction(currentGameState):
         dist = util.manhattanDistance(pacman,food)
         if dist < foodDist:
             foodDist = dist
-    retVal = retVal - 1.5*foodDist
+    retVal = retVal - weights[0]*foodDist
 
     ghostList = currentGameState.getGhostPositions()
     for ghost in ghostList:
         ghostDist = util.manhattanDistance(pacman,ghost)
-        if ghostDist < 2:
-            retVal = -999999999999999
-        else:
-            retVal = retVal + max(ghostDist,4)*2
-    retVal = retVal - 4*len(foodList)
+        retVal = retVal + max(ghostDist,weights[1])*weights[2]
+    scaredGhostCounter = 0
+    for ghost in currentGameState.getGhostStates():
+        if ghost.scaredTimer <=0:
+            scaredGhostCounter = scaredGhostCounter + 1
+    retVal = retVal - weights[3]*len(foodList)
+    retVal = retVal - max(ghostDist,weights[1])*weights[2]*scaredGhostCounter
+    retVal = retVal - weights[4]*len(currentGameState.getCapsules())
 
-    retVal = retVal - 3.5*len(currentGameState.getCapsules())
-
-    return 1.0/retVal
+    return retVal
 
 
 # Abbreviation
